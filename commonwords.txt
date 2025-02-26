@@ -1,1 +1,210 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover a Random Album</title>
+    <style>
+        /* Modernized 2000s Aesthetic Theme */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #dbe8ff, #8caeff);
+            color: #003366;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 20px 0;
+            color: #003366;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .album-preview {
+            background: #ffffff;
+            border: 1px solid #003366;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            width: 300px;
+        }
+
+        .album-preview p {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #003366;
+        }
+
+        a.preview-button, button.reroll-button {
+            display: inline-block;
+            background: linear-gradient(to bottom, #ffffff, #d6e7ff);
+            border: 2px solid #003366;
+            border-radius: 5px;
+            color: #003366;
+            font-weight: bold;
+            padding: 10px 20px;
+            margin: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        a.preview-button:hover, button.reroll-button:hover {
+            transform: scale(1.1);
+            background: linear-gradient(to bottom, #e6f2ff, #c8dbff);
+        }
+
+        .previous {
+            background: #f9faff;
+            border: 1px solid #003366;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown {
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #003366;
+        }
+
+        .dropdown-content {
+            background: #ffffff;
+            border: 1px solid #003366;
+            border-radius: 5px;
+            padding: 10px;
+            display: none;
+        }
+
+        .dropdown.active + .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            color: #003366;
+            text-decoration: underline;
+            display: block;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        /* Loading Spinner */
+        #loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #003366;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            font-size: 0.8em;
+            margin-top: auto;
+            color: #666;
+            padding: 10px 0;
+            background-color: #f1f5ff;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Discover a Random Album</h1>
+    <div class="album-preview">
+        <p>Random Album Number: <span id="albumNumber">-</span></p>
+        <a id="albumLink" href="#" target="_blank" class="preview-button">View on RYM</a>
+        <button onclick="generateRandomAlbumNumber()" class="reroll-button">🎲 Reroll Album</button>
+    </div>
+
+    <div class="previous">
+        <div id="dropdown" class="dropdown" onclick="toggleDropdown()">
+            <span>Previous Albums Viewed</span>
+            <span>▼</span>
+        </div>
+        <div id="previous-content" class="dropdown-content"></div>
+    </div>
+
+    <footer>
+        Made with <span style="color: red;">♥</span> in a modernized 2000s aesthetic
+    </footer>
+
+    <div id="loading">🎲 Rolling...</div>
+
+    <script>
+        let isRolling = false;
+        const previousAlbums = [];
+
+        function generateRandomAlbumNumber() {
+            if (isRolling) return; // Prevent multiple clicks
+            isRolling = true;
+
+            const randomAlbumNumber = Math.floor(Math.random() * 1000000) + 1; // Generate random album number
+            const albumNumberDisplay = document.getElementById("albumNumber");
+            const albumLink = document.getElementById("albumLink");
+
+            let counter = 0;
+            const rollInterval = setInterval(() => {
+                if (counter < 20) {
+                    albumNumberDisplay.innerText = Math.floor(Math.random() * 1000000) + 1; // Rolling effect
+                    counter++;
+                } else {
+                    clearInterval(rollInterval);
+
+                    // Set final album number
+                    albumNumberDisplay.innerText = randomAlbumNumber;
+
+                    // Update link to RYM
+                    albumLink.href = `https://rateyourmusic.com/search?searchterm=${randomAlbumNumber}&searchtype=l`;
+
+                    // Save to previous albums and update UI
+                    addToPreviousAlbums(randomAlbumNumber);
+                    updatePrevious();
+
+                    isRolling = false;
+                }
+            }, 50);
+        }
+
+        function addToPreviousAlbums(albumNumber) {
+            if (!previousAlbums.includes(albumNumber)) {
+                previousAlbums.push(albumNumber);
+            }
+        }
+
+        function updatePrevious() {
+            const previousContent = document.getElementById("previous-content");
+            previousContent.innerHTML = ""; // Clear previous entries
+            previousAlbums.forEach(album => {
+                const albumLink = document.createElement("a");
+                albumLink.href = `https://rateyourmusic.com/search?searchterm=${album}&searchtype=l`;
+                albumLink.target = "_blank";
+                albumLink.innerText = `Album ${album}`;
+                previousContent.appendChild(albumLink);
+            });
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById("dropdown");
+            dropdown.classList.toggle("active");
+        }
+    </script>
+</body>
+</html>
